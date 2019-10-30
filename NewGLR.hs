@@ -1,4 +1,32 @@
 import Data.List (length)
+
+data Rule = Rule Char [Char]
+            deriving (Show,Read,Eq)
+data Graph = Vertix [Edge] Bool
+            | Leaf Bool
+            deriving (Show,Read,Eq)
+data Edge = Edge Graph Char [Char]
+            deriving (Show,Read,Eq)
+
+creategraph :: [Rule] -> Graph
+creategraph = foldr (addRule) (Leaf True)
+                    where addRule :: Rule -> Graph -> Graph
+                          addRule (Rule nt []) x = x
+                          addRule (Rule nt (symb:symbs)) x = if (isSymbInEdges symb x) then (if (isThisEdge symb nt x) then (addInGraphByGoTo symb nt x) else (addInGraphByAddingNT symb nt x)) else (addInGraphByNewEdge symb nt x)
+                                    where
+                                        isSymbInEdges :: Char -> Graph -> Bool
+                                        isThisEdge :: Char -> Char -> Graph -> Bool
+                                        addInGraphByGoTo :: Char -> Char -> Graph -> Graph
+                                        addInGraphByAddingNT :: Char -> Char -> Graph -> Graph
+                                        addInGraphByNewEdge :: Char -> Char -> Graph -> Graph
+                                        isSymbInEdges symb x = True
+                                        isThisEdge symb nt x = True
+                                        addInGraphByGoTo symb nt x = x
+                                        addInGraphByAddingNT symb nt x = x
+                                        addInGraphByNewEdge symb nt x = x
+
+
+{-
 data Literal = Var Int
              | Not Int
              deriving (Show,Read,Eq)
@@ -105,3 +133,5 @@ len2 a | length a == 2 = True
 
 len3 a | length a > 2 = True
        | otherwise = False
+
+-}
