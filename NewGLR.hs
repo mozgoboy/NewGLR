@@ -19,11 +19,16 @@ creategraph = foldr (addRule) (Leaf True)
                                         addInGraphByGoTo :: Char -> Char -> Graph -> Graph
                                         addInGraphByAddingNT :: Char -> Char -> Graph -> Graph
                                         addInGraphByNewEdge :: Char -> Char -> Graph -> Graph
-                                        isSymbInEdges symb x = True
+                                        isSymbInEdges symb (Vertix edges _) = (foldr (checksymb symb) False) edges
+                                                        where
+                                                            checksymb::Char -> Edge -> Bool -> Bool
+                                                            checksymb symb (Edge _ symb1 _) False = if (symb == symb1) then True else False
+                                                            checksymb _ _ True = True
                                         isThisEdge symb nt x = True
                                         addInGraphByGoTo symb nt x = x
                                         addInGraphByAddingNT symb nt x = x
                                         addInGraphByNewEdge symb nt x = x
+
 
 
 {-
