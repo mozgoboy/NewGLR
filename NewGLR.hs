@@ -8,9 +8,29 @@ data Rule = Rule Char [Char]
             deriving (Show,Read,Eq)
 data Graph = Vertix [Edge] Bool
             | Leaf Bool
-            deriving (Show,Read,Eq)
+            deriving (Read,Eq)
 data Edge = Edge Graph Char [Char]
-            deriving (Show,Read,Eq)
+            deriving (Read,Eq)
+
+instance Show Graph where
+    show g = getStringFromGraph "" g
+
+
+
+getStringFromGraph ::  [Char] -> Graph -> [Char]
+getStringFromEdge ::[Char] -> Edge -> [Char]
+getNSpace :: Int -> [Char]
+
+getStringFromGraph s (Leaf True) = "0" ++ "\n"
+getStringFromGraph s (Leaf False)  = "*" ++ "\n"
+getStringFromGraph s (Vertix edges True) = "0"++ "\n" ++ (foldr (++) "" (map (getStringFromEdge (s ++ (getNSpace 1))) edges ))
+getStringFromGraph s (Vertix edges False) = "*" ++ "\n" ++ (foldr (++) "" (map (getStringFromEdge (s ++ (getNSpace 1))) edges ))
+
+getStringFromEdge s (Edge g sy nts) =s++ "|--" ++ [sy] ++ "::" ++ nts ++ "--" ++ (getStringFromGraph (s ++ (getNSpace (8 +(length nts)))) g)
+
+getNSpace 1 = " "
+getNSpace n = " " ++ (getNSpace (n-1))
+
 
 creategraph :: [Rule] -> Graph
 creategraph = foldr (addRule) (Leaf False)
@@ -42,38 +62,6 @@ isIn a [b] | a==b = True
            | otherwise = False
 isIn a (b:bs) | a==b = True
               | otherwise = isIn a bs
-{-rebuildEdge :: Char -> Char -> [Char] -> Edge
-rebuildEdge symb nt symbs -}
-                          {-addRule (Rule nt (symb:symbs)) x = if (isSymbInEdges symb x) then (if (isThisEdge symb nt x) then (addInGraphByGoTo symb nt x) else (addInGraphByAddingNT symb nt x)) else (addInGraphByNewEdge symb nt x)
-                                    where monad State check this --
-                                        isSymbInEdges :: Char -> Graph -> Bool
-                                        isThisEdge :: Char -> Char -> Graph -> Bool
-                                        addInGraphByGoTo :: Char -> Char -> Graph -> Graph
-                                        addInGraphByAddingNT :: Char -> Char -> Graph -> Graph
-                                        addInGraphByNewEdge :: Char -> Char -> Graph -> Graph
-                                        isSymbInEdges symb (Vertix edges _) = (foldr (checksymb symb) False) edges
-                                                        where
-                                                            checksymb::Char -> Edge -> Bool -> Bool
-                                                            checksymb symb (Edge _ symb1 _) False = if (symb == symb1) then True else False
-                                                            checksymb _ _ True = True
-                                        isThisEdge symb nt (Vertix edges _) = (foldr (checksymbplusnt symb nt) False) edges
-                                                        where
-                                                            checksymbplusnt :: Char -> Char -> Edge -> Bool -> Bool
-                                                            checksymbplusnt _ _ _ True = True
-                                                            checksymbplusnt symb nt (Edge _ symb1 nts) False = if ((symb == symb1) && (isIn nt nts)) then True else False
-                                                                    where
-                                                                        isIn :: Char -> [Char] -> Bool
-                                                                        isIn x = foldr (thesame x) False
-                                                                            where
-                                                                                thesame :: Char -> Char -> Bool -> Bool
-                                                                                thesame _ _ True = True
-                                                                                thesame x y False = if (x == y) then True else False
-
-                                        addInGraphByGoTo symb nt x = x
-                                        addInGraphByAddingNT symb nt x = x
-                                        addInGraphByNewEdge symb nt x = x-}
-
-
 
 {-
 data Literal = Var Int
