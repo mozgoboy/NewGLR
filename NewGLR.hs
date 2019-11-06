@@ -1,6 +1,8 @@
 import Data.List (length)
 
-
+--data N = N Char
+--data T = T Char
+-- = T | N
 
 data Rule = Rule Char [Char]
             deriving (Show,Read,Eq)
@@ -11,14 +13,39 @@ data Edge = Edge Graph Char [Char]
             deriving (Show,Read,Eq)
 
 creategraph :: [Rule] -> Graph
-creategraph = foldr (addRule) (Leaf True)
-                    where addRule :: Rule -> Graph -> Graph
-                          addRule (Rule _ []) (Leaf _) = Leaf True
-                          addRule (Rule _ []) (Vertix edges _) = Vertix edges True
-                          addRule (Rule nt (symb:symbs) (Leaf cond) = Vertix [Edge (addRule (Rule nt symbs) (Leaf False)) symb [nt]]
-                          addRule (Rule nt (symb:symbs) (Vertix edges cond)) = Vertix (map rebuildEdge edges)
+creategraph = foldr (addRule) (Leaf False)
+
+addRule :: Rule -> Graph -> Graph
+addRule (Rule _ []) (Leaf _) = Leaf True
+addRule (Rule _ []) (Vertix edges _) = Vertix edges True
+addRule (Rule nt (symb:symbs)) (Leaf cond) = Vertix [Edge (addRule (Rule nt symbs) (Leaf False)) symb [nt]] cond
+addRule (Rule nt (symb:symbs)) (Vertix edges cond) | (foldr (||) False (map (isNtAndSymb symb nt) edges) ) == True = Vertix (map (rebuildEdgeSnN symb nt symbs) edges) cond
+                                                   | (foldr (||) False (map (isSymb symb) edges) ) == True = Vertix (map (rebuildEdgeS symb nt symbs) edges) cond
+                                                   | otherwise = Vertix (edges ++ [Edge (addRule (Rule nt symbs) (Leaf False)) symb [nt]]) cond
+isNtAndSymb :: Char -> Char -> Edge -> Bool
+isNtAndSymb symb nt (Edge _ s nts) = ((symb == s) && (isIn nt nts))
+
+isSymb :: Char -> Edge -> Bool
+isSymb symb (Edge _ s nts) = (symb == s)
+
+rebuildEdgeSnN :: Char -> Char -> [Char] -> Edge -> Edge
+rebuildEdgeSnN symb nt symbs (Edge g s nts) | (s == symb) = Edge (addRule (Rule nt symbs) g) s nts
+                                            | otherwise = (Edge g s nts)
+
+rebuildEdgeS :: Char -> Char -> [Char] -> Edge -> Edge
+rebuildEdgeS symb nt symbs (Edge g s nts) | (s == symb) = Edge (addRule (Rule nt symbs) g) s (nts ++ [nt])
+                                          | otherwise = (Edge g s nts)
+
+
+isIn a [] = False
+isIn a [b] | a==b = True
+           | otherwise = False
+isIn a (b:bs) | a==b = True
+              | otherwise = isIn a bs
+{-rebuildEdge :: Char -> Char -> [Char] -> Edge
+rebuildEdge symb nt symbs -}
                           {-addRule (Rule nt (symb:symbs)) x = if (isSymbInEdges symb x) then (if (isThisEdge symb nt x) then (addInGraphByGoTo symb nt x) else (addInGraphByAddingNT symb nt x)) else (addInGraphByNewEdge symb nt x)
-                                    where
+                                    where monad State check this --
                                         isSymbInEdges :: Char -> Graph -> Bool
                                         isThisEdge :: Char -> Char -> Graph -> Bool
                                         addInGraphByGoTo :: Char -> Char -> Graph -> Graph
