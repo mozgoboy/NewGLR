@@ -1,21 +1,35 @@
 import Data.List (length)
 
---data N = N Char
---data T = T Char
--- = T | N
+type Term = Char
+type NTerm = Char
 
-data Rule = Rule Char [Char]
+data Alphabit = N NTerm | T Term
+                 deriving (Show,Read,Eq)
+data Struct = Struct Char Graph Struct Int Int Struct Bool | Begin | HighStruct Char Graph Struct Int Bool
+            deriving (Show,Read,Eq)
+data Rule = Rule NTerm [Alphabit]
             deriving (Show,Read,Eq)
 data Graph = Vertix [Edge] Bool
             | Leaf Bool
             deriving (Read,Eq)
-data Edge = Edge Graph Char [Char]
+data Edge = Edge Graph Alphabit [NTerm]
             deriving (Read,Eq)
 
 instance Show Graph where
     show g = getStringFromGraph "" g
 
+instance Show Edge where
+    show e = getStringFromEdge "" e
 
+--glr :: [Char] -> [Struct]
+--clearRubish :: [Struct] -> [Struct]
+--makeDeriving :: Struct -> [Char]
+
+
+isRubish :: Struct -> Bool
+isRubish Begin = True
+isRubish (Struct _ _ _ _ _ _ x) = x
+isRubish (HighStruct _ _ _ _ x) = x
 
 getStringFromGraph ::  [Char] -> Graph -> [Char]
 getStringFromEdge ::[Char] -> Edge -> [Char]
@@ -26,7 +40,7 @@ getStringFromGraph s (Leaf False)  = "*" ++ "\n"
 getStringFromGraph s (Vertix edges True) = "0"++ "\n" ++ (foldr (++) "" (map (getStringFromEdge (s ++ (getNSpace 1))) edges ))
 getStringFromGraph s (Vertix edges False) = "*" ++ "\n" ++ (foldr (++) "" (map (getStringFromEdge (s ++ (getNSpace 1))) edges ))
 
-getStringFromEdge s (Edge g sy nts) =s++ "|--" ++ [sy] ++ "::" ++ nts ++ "--" ++ (getStringFromGraph (s ++ (getNSpace (8 +(length nts)))) g)
+getStringFromEdge s (Edge g sy nts) =s++ "|--(" ++ (show sy) ++ ")::" ++ nts ++ "--" ++ (getStringFromGraph (s ++ (getNSpace (8 +(length nts)))) g)
 
 getNSpace 1 = " "
 getNSpace n = " " ++ (getNSpace (n-1))
@@ -42,17 +56,17 @@ addRule (Rule nt (symb:symbs)) (Leaf cond) = Vertix [Edge (addRule (Rule nt symb
 addRule (Rule nt (symb:symbs)) (Vertix edges cond) | (foldr (||) False (map (isNtAndSymb symb nt) edges) ) == True = Vertix (map (rebuildEdgeSnN symb nt symbs) edges) cond
                                                    | (foldr (||) False (map (isSymb symb) edges) ) == True = Vertix (map (rebuildEdgeS symb nt symbs) edges) cond
                                                    | otherwise = Vertix (edges ++ [Edge (addRule (Rule nt symbs) (Leaf False)) symb [nt]]) cond
-isNtAndSymb :: Char -> Char -> Edge -> Bool
+isNtAndSymb :: Alphabit -> NTerm -> Edge -> Bool
 isNtAndSymb symb nt (Edge _ s nts) = ((symb == s) && (isIn nt nts))
 
-isSymb :: Char -> Edge -> Bool
+isSymb :: Alphabit -> Edge -> Bool
 isSymb symb (Edge _ s nts) = (symb == s)
 
-rebuildEdgeSnN :: Char -> Char -> [Char] -> Edge -> Edge
+rebuildEdgeSnN :: Alphabit -> NTerm -> [Alphabit] -> Edge -> Edge
 rebuildEdgeSnN symb nt symbs (Edge g s nts) | (s == symb) = Edge (addRule (Rule nt symbs) g) s nts
                                             | otherwise = (Edge g s nts)
 
-rebuildEdgeS :: Char -> Char -> [Char] -> Edge -> Edge
+rebuildEdgeS :: Alphabit -> NTerm -> [Alphabit] -> Edge -> Edge
 rebuildEdgeS symb nt symbs (Edge g s nts) | (s == symb) = Edge (addRule (Rule nt symbs) g) s (nts ++ [nt])
                                           | otherwise = (Edge g s nts)
 
